@@ -6,22 +6,28 @@
     <script type="text/javascript" src="vendor/reconnecting-websocket.min.js"></script>
     <script type="text/javascript">
 
-      var readings = new TimeSeries();
+      var cats = new TimeSeries();
+	  var dogs = new TimeSeries();
       
       function createTimeline() {
         var chart = new SmoothieChart({
           interpolation:'bezier',
           minValue:0.0,
-          maxValue:4000
+          maxValue:10,
+          labels:{fillStyle:'rgba(255,255,255,0.63)'}
         });
-        chart.addTimeSeries(readings, { 
+        chart.addTimeSeries(cats, { 
             strokeStyle: 'rgba(0, 255, 0, 0.6)',
+            fillStyle: 'rgba(0, 0, 255, 0.2)',
+            lineWidth: 3 });
+        chart.addTimeSeries(dogs, { 
+            strokeStyle: 'rgba(255, 0, 0, 0.6)',
             fillStyle: 'rgba(0, 0, 255, 0.2)',
             lineWidth: 3 });
         chart.streamTo(document.getElementById("chart"), 500);
       }
 
-      var ws = new ReconnectingWebSocket('ws://pi:8080/');
+      var ws = new ReconnectingWebSocket('ws://localhost:8080/');
       ws.onopen = function() {
         document.body.style.backgroundColor = '#cfc';
       };
@@ -30,15 +36,19 @@
       };
       ws.onmessage = function(event) {
         var data = event.data.split(",");
-        var timestamp = parseFloat(data[0]) * 1000;  // expects ms
+        var category = data[0];
         var value = parseFloat(data[1]);
-        readings.append(timestamp, value);
+		if (category == "cats"){
+          cats.append(new Date().getTime(), value);
+		}else{
+          dogs.append(new Date().getTime(), value);
+		}
       };
 
     </script>
   </head>
   <body onload="createTimeline()">
-    <h2> Photoresistor RC Timings from Raspberry Pi GPIO pins </h2>
+    <h2> Apid Max-Pending Queue Limit</h2>
     <canvas id="chart" width="800" height="400"></canvas>
   </body>
 </html>
